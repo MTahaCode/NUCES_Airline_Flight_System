@@ -7,19 +7,71 @@ using namespace std;
 
 class Airport;
 
-class User
+class Admin
 {
+protected:
+	string CNIC;
+	string Name;
+	string Password;
+public:
+	Admin(string cnic = "", string name = "", string password = "")
+		:CNIC(cnic), Name(name), Password(password) {}
 	
+	// Setters
+	void setCNIC(string cnic) 
+	{ 
+		CNIC = cnic; 
+	}
+	void setName(string name) 
+	{ 
+		Name = name; 
+	}
+	void setPassword(string password) 
+	{ 
+		Password = password; 
+	}
+
+	// Getters
+	string getCNIC() const 
+	{
+		return CNIC; 
+	}
+	string getName() const 
+	{ 
+		return Name; 
+	}
+	string getPassword() const 
+	{ 
+		return Password; 
+	}
 };
 
-class Admin : public User
+class Passenger : public Admin
 {
-
-};
-
-class Passenger : public User
-{
-
+private:
+	bool isVisa;
+	bool isPassportValid;
+public:
+	Passenger(bool visa = 0, bool pass = 0,string cnic = "", string name = "", string password = "")
+		: isVisa(visa), isPassportValid(pass), Admin(cnic, name, password) {}
+	// getters
+	bool getIsVisa() const 
+	{
+		return isVisa;
+	}
+	bool getIsPassportValid() const 
+	{
+		return isPassportValid;
+	}
+	// setters
+	void setIsVisa(bool visa) 
+	{
+		isVisa = visa;
+	}
+	void setIsPassportValid(bool pass) 
+	{
+		isPassportValid = pass;
+	}
 };
 
 class Seat
@@ -27,26 +79,134 @@ class Seat
 	//should be abstract
 	//takes a passenger details as aggregation
 	//must also have a covid thing
+protected:
+	Passenger& passenger;
+	string Name;
+	bool isOccupied;
+public:
+	Seat(Passenger& pass, string name = "", bool occupied = 0)
+		:Name(name), isOccupied(occupied), passenger(pass) {}
+
+	// getters
+	string getName() const 
+	{
+		return Name;
+	}
+	bool getOccupiedStatus() const 
+	{
+		return isOccupied;
+	}
+	Passenger getPassenger() const
+	{
+		return passenger;
+	}
+	//setters
+	void setName(string name)
+	{
+		Name = name;
+	}
+	void setOccupied(bool status) 
+	{
+		isOccupied = status;
+	}
+	void setPassenger(Passenger& p) 
+	{
+		passenger = p;
+	}
 };
 
-class Buisness : public Seat
-{
-
-};
-
-class Economy : public Seat
-{
-
-};
+//class Buisness : public Seat
+//{
+//
+//};
+//
+//class Economy : public Seat
+//{
+//
+//};
 
 class Plane
 {
 	//takes the seats economy and buisness as composition
+protected:
+	Seat** BuisnessClass;
+	Seat** EconomyClass;
+public:
+	Plane()
+	{
+		BuisnessClass = new Seat*[10];
+		EconomyClass = new Seat*[50];
+		for (int i = 0; i < 10; i++)
+		{
+			Passenger empty;
+			BuisnessClass[i] = new Seat(empty);
+		}
+		for (int i = 0; i < 50; i++)
+		{
+			Passenger empty;
+			EconomyClass[i] = new Seat(empty);
+		}
+	}
+
+	void ShowAvaliableSeats();
 	//keeps check of which are filled and which are not
 };
 
 class Flight
 {
+private:
+	Plane& plane;
+	bool isLocal;
+	int HrsOfFlight;
+	int DepartureTime;
+	int ArrivalTime;
+public:
+	Flight(Plane& p, bool local=0, int hrs=0, int depTime=0, int arrTime=0)
+		: plane(p), isLocal(local), HrsOfFlight(hrs), DepartureTime(depTime), ArrivalTime(arrTime) {}
+
+	// Getters
+	Plane& getPlane() const 
+	{
+		return plane;
+	}
+	bool getIsLocal() const 
+	{
+		return isLocal;
+	}
+	int getHrsOfFlight() const 
+	{
+		return HrsOfFlight;
+	}
+	int getDepartureTime() const 
+	{
+		return DepartureTime;
+	}
+	int getArrivalTime() const 
+	{
+		return ArrivalTime;
+	}
+
+	// Setters
+	void setPlane(Plane& p) 
+	{
+		plane = p;
+	}
+	void setIsLocal(bool local) 
+	{
+		isLocal = local;
+	}
+	void setHrsOfFlight(int hrs) 
+	{
+		HrsOfFlight = hrs;
+	}
+	void setDepartureTime(int depTime) 
+	{
+		DepartureTime = depTime;
+	}
+	void setArrivalTime(int arrTime) 
+	{
+		ArrivalTime = arrTime;
+	}
 	//takes a plane aggregation
 	//manages a departure time and arrival time for the plane
 	//aggregation of a departure airport/country and arrival airport/country
@@ -54,6 +214,15 @@ class Flight
 
 class FlightSchedule
 {
+private:
+	Plane plane;
+	Flight* Flights;
+	int NoOfFlights;
+public:
+	FlightSchedule(Plane p, int numflights=1): plane(p)
+	{
+		NoOfFlights = numflights;
+	}
 	//takes a plane compostion
 	//array of flights and puts the plane inside them composition
 };
