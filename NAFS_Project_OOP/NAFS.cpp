@@ -1,7 +1,7 @@
 #include <iostream>
 #include <windows.h>
 #include <string>
-#include <conio.h>
+#include <fstream>
 
 using namespace std;
 
@@ -216,12 +216,17 @@ class FlightSchedule
 {
 private:
 	Plane plane;
-	Flight* Flights;
+	Flight** Flights;
 	int NoOfFlights;
 public:
 	FlightSchedule(Plane p, int numflights=1): plane(p)
 	{
 		NoOfFlights = numflights;
+		Flights = new Flight * [NoOfFlights];
+		for (int i = 0; i < NoOfFlights; i++)
+		{
+			Flights[i] = new Flight(plane);
+		}
 	}
 	//takes a plane compostion
 	//array of flights and puts the plane inside them composition
@@ -229,27 +234,200 @@ public:
 
 class Airport
 {
+private:
+	Plane* AllPlanes;
+	int NoOfPlanes = 0;
+	FlightSchedule** ScheduleForPlanes;
 	//takes flights as aggregation
+public:
+	Airport(int noofplanes=1)
+	{
+		AllPlanes = new Plane[NoOfPlanes];
+		ScheduleForPlanes = new FlightSchedule*[NoOfPlanes];
+		for (int i = 0; i < NoOfPlanes; i++)
+		{
+			ScheduleForPlanes[i] = new FlightSchedule(AllPlanes[i]);
+		}
+	}
 };
 
 class City
 {
+private:
+	Airport* North;
+	Airport* South;
+public:
+	City()
+	{
+		North = new Airport(5);
+		South = new Airport(5);
+	}
 	//composition of two airports namely north and south
 };
 
 class Booking
 {
+private:
+	Passenger* RegisteredPassenger;
+	City* DepartureCity;
+	City* ArrivalCity;
+	Seat* seatsSelected;
+	bool isFlightDone;
+	int TicketPrice;
+
+public:
+	Booking(Passenger& p, City& dep, City& arr, bool done = 0, int price = 0) : isFlightDone(done), TicketPrice(price)
+	{
+		RegisteredPassenger = &p;
+		DepartureCity = &dep;
+		ArrivalCity = &arr;
+		seatsSelected = new Seat(p);
+	}
+
+	// getters
+	Passenger* getPassenger() const
+	{
+		return RegisteredPassenger;
+	}
+	City* getDepartureCity() const
+	{
+		return DepartureCity;
+	}
+	City* getArrivalCity() const
+	{
+		return ArrivalCity;
+	}
+	Seat* getSeats() const
+	{
+		return seatsSelected;
+	}
+	bool getFlightDone() const
+	{
+		return isFlightDone;
+	}
+	int getTicketPrice() const
+	{
+		return TicketPrice;
+	}
+
+	// setters
+	void setPassenger(Passenger* passenger)
+	{
+		RegisteredPassenger = passenger;
+	}
+	void setDepartureCity(City* city)
+	{
+		DepartureCity = city;
+	}
+	void setArrivalCity(City* city)
+	{
+		ArrivalCity = city;
+	}
+	void setSeats(Seat* seats)
+	{
+		seatsSelected = seats;
+	}
+	void setFlightDone(bool done)
+	{
+		isFlightDone = done;
+	}
+	void setTicketPrice(int price)
+	{
+		TicketPrice = price;
+	}
+
+	//ask for which city inital
+	//which city going to 
+	//which airport in the other ciry
+	//show flight schedule of the city
+	//ask which time 
+	//when selected show seats and ask for seats
+	//show cost
+
+
+	//for country have a string array in global of all countries
+	//ask if they want to go to another country or another city
+	//check for which country later
+
 	//aggregation of country and airport
 	//composition of passenger
 	//takes a flight from a list of flights for the day
 	//takes seats as well
 };
 
+/*string CNIC;
+	string Name;
+	string Password;*/
+
 int NoOfAdmin = 3;
-int NoOfPassengers = 5;
 Admin* AllAdmin = new Admin[NoOfAdmin];
+
+int NoOfPassengers = 1;
 Passenger* AllPassengers = new Passenger[NoOfPassengers];
-Booking* AllBookings = new Booking[5];
+
+Booking* AllBookings;
+
+void GetAdminInfo()
+{
+	ifstream GetAdmins("Admin.txt");
+	string OneAdmin;
+	int AdminFlag = 0;
+	while (getline(GetAdmins, OneAdmin))
+	{
+		string SeperateBySpace;
+		int AttributeFlag = 0;
+		for (int i = 0; i < OneAdmin.length(); i++)
+		{
+			if (OneAdmin[i] == ' ')
+			{
+				if (AttributeFlag == 0)
+				{
+					AttributeFlag++;
+					AllAdmin[AdminFlag].setCNIC(SeperateBySpace);
+					SeperateBySpace = "";
+				}
+				else if (AttributeFlag == 1)
+				{
+					AttributeFlag++;
+					AllAdmin[AdminFlag].setName(SeperateBySpace);
+					SeperateBySpace = "";
+				}
+				else if (AttributeFlag == 2)
+				{
+					AttributeFlag++;
+					AllAdmin[AdminFlag].setPassword(SeperateBySpace);
+					SeperateBySpace = "";
+				}
+			}
+			SeperateBySpace += OneAdmin[i];
+		}
+		AdminFlag++;
+	}
+	GetAdmins.close();
+}
+
+void PrintAdmin()
+{
+	for (int i = 0; i < 3; i++)
+	{
+		cout << "CNIC: " << AllAdmin[i].getCNIC();
+		cout << " Name: " << AllAdmin[i].getName();
+		cout << " Password: " << AllAdmin[i].getPassword()<<endl;
+	}
+}
+
+void PrintPassengers()
+{
+	for (int i = 0; i < NoOfPassengers; i++)
+	{
+		cout << "CNIC: " << AllPassengers[i].getCNIC();
+		cout << " Name: " << AllPassengers[i].getName();
+		cout << " Password: " << AllPassengers[i].getPassword();
+		cout << " Is Passport Valid: " << AllPassengers[i].getIsPassportValid();
+		cout << " Is there VISA: " << AllPassengers[i].getIsVisa() << endl;
+	}
+}
+
 //should have a outside function to change their size
 //should also allow to save in file
 
@@ -336,28 +514,112 @@ bool isValidPassword(string password)
 	return 0;
 }
 
+void AddToFile(Passenger ToBeRegistered)
+{
+	ofstream AddARegisteredPassenger("Passengers.txt", ios::app);
+
+	AddARegisteredPassenger << ToBeRegistered.getCNIC() << " ";
+	AddARegisteredPassenger << ToBeRegistered.getName() << " ";
+	AddARegisteredPassenger << ToBeRegistered.getPassword() << " ";
+	AddARegisteredPassenger << ToBeRegistered.getIsPassportValid() << " ";
+	AddARegisteredPassenger << ToBeRegistered.getIsVisa() << " " << endl;;
+	AddARegisteredPassenger.close();
+}
+
+void UpdatePassengerArray()
+{
+	//first deleting original
+	delete[] AllPassengers;
+	NoOfPassengers = 0;
+
+	//get no of passengers
+	ifstream GetNumPass("Passengers.txt");
+	string APassenger;
+	while (getline(GetNumPass, APassenger))
+	{
+		NoOfPassengers++;
+		cout << NoOfPassengers;
+	}
+	GetNumPass.close();
+
+	//making the array
+	AllPassengers = new Passenger[NoOfPassengers];
+
+	//getting passengers
+	ifstream GetPassengers("Passengers.txt");
+	int PassengersFlag = 0;
+	while (getline(GetPassengers, APassenger))
+	{
+		string SeperateBySpace;
+		int AttributeFlag = 0;
+		for (int i = 0; i < APassenger.length(); i++)
+		{
+			if (APassenger[i] == ' ')
+			{
+				if (AttributeFlag == 0)
+				{
+					AttributeFlag++;
+					AllPassengers[PassengersFlag].setCNIC(SeperateBySpace);
+					SeperateBySpace = "";
+				}
+				else if (AttributeFlag == 1)
+				{
+					AttributeFlag++;
+					AllPassengers[PassengersFlag].setName(SeperateBySpace);
+					SeperateBySpace = "";
+				}
+				else if (AttributeFlag == 2)
+				{
+					AttributeFlag++;
+					AllPassengers[PassengersFlag].setPassword(SeperateBySpace);
+					SeperateBySpace = "";
+				}
+				else if (AttributeFlag == 3)
+				{
+					AttributeFlag++;
+					AllPassengers[PassengersFlag].setIsPassportValid(stoi(SeperateBySpace));
+					SeperateBySpace = "";
+				}
+				else if (AttributeFlag == 4)
+				{
+					AttributeFlag++;
+					AllPassengers[PassengersFlag].setIsVisa(stoi(SeperateBySpace));
+					SeperateBySpace = "";
+				}
+			}
+			SeperateBySpace += APassenger[i];
+		}
+		PassengersFlag++;
+	}
+	GetPassengers.close();
+}
+
 void Register()
 {
-	//ask for cnic
-	// check if this cnic doesnt already exist as a registered one
-	// 
-	//ask for password
-	//ask to renter password
-	//if both dont match say the passwords dont match please reenter passwords
-	//after correct password check 
-	
-	string LoginCNIC;
+	Passenger ToBeRegistered;
+
+	//get name
+	cout << "Enter you name: ";
+	string name;
+	cin.ignore();
+	getline(cin, name);
+	ToBeRegistered.setName(name);
+
+	//gets cnic
+	string CNIC;
 	do
 	{
 		cout << "Enter CNIC: ";
-		cin.ignore();
-		getline(cin, LoginCNIC);
-		if (UserExists(LoginCNIC) == 1)
+		cin.ignore();//might cause problem
+		getline(cin, CNIC);
+		if (UserExists(CNIC) == 1)
 		{
 			cout << "\nThe CNIC Already exists please enter a new one\n";
 		}
-	} while (UserExists(LoginCNIC) == 1);
+	} while (UserExists(CNIC) == 1);
+	ToBeRegistered.setCNIC(CNIC);
 
+	//gets password
 	string PasswordOriginal;
 	string PasswordAgain;
 	bool same;
@@ -375,9 +637,55 @@ void Register()
 			same = 0;
 		}
 	} while (!isValidPassword(PasswordOriginal) || !same);
+	ToBeRegistered.setPassword(PasswordOriginal);
 
-	//ask for financial details
-	//need to add to the arrays code still left
+	//asking for passport
+	char haspassport;
+	do
+	{
+		cout << "Do You have passport?\n";
+		cout << "Press 1 for yes\n";
+		cout << "Press 2 for no\n";
+		cin >> haspassport;
+		if (haspassport != '1' && haspassport != '2')
+		{
+			cout << "Invalid input\n";
+			continue;
+		}
+		else if (haspassport == '1')
+		{
+			ToBeRegistered.setIsPassportValid(1);
+		}
+		else if (haspassport == '2')
+		{
+			ToBeRegistered.setIsPassportValid(0);
+		}
+	} while (haspassport != '1' && haspassport != '2');
+
+	char hasvisa;
+	do
+	{
+		cout << "Do You have visa?\n";
+		cout << "Press 1 for yes\n";
+		cout << "Press 2 for no\n";
+		cin >> hasvisa;
+		if (hasvisa != '1' && hasvisa != '2')
+		{
+			cout << "Invalid input\n";
+			continue;
+		}
+		else if (hasvisa == '1')
+		{
+			ToBeRegistered.setIsVisa(1);
+		}
+		else if (hasvisa == '2')
+		{
+			ToBeRegistered.setIsVisa(0);
+		}
+	} while (hasvisa != '1' && hasvisa != '2');
+	
+	AddToFile(ToBeRegistered);
+	UpdatePassengerArray();
 
 }
 
@@ -401,6 +709,9 @@ void Login()
 
 int main()
 {
+	GetAdminInfo();
+	UpdatePassengerArray();
+	PrintPassengers();
 	bool Exit = 0;
 	while (!Exit)
 	{
@@ -440,8 +751,5 @@ int main()
 			break;
 		}
 	}
-	
-
-
 	return 0;
 }
