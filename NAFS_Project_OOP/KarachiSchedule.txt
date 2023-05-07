@@ -1,0 +1,4 @@
+Quetta Karachi 1 2 0800 1000
+Lahore Karachi 1 2 1100 1300
+Islamabad Karachi 1 2 1400 1600
+Peshawar Karachi 1 2 1700 1900
