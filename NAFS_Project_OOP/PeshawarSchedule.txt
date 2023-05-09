@@ -1,4 +1,4 @@
-Karachi Peshawar 1 2 1100 1300
-Lahore Peshawar 1 2 1400 1600
-Islamabad Peshawar 1 2 1700 1900
-Lahore Peshawar 1 2 2000 2200
+Karachi Peshawar 1 2 1100 1300 
+Lahore Peshawar 1 2 1400 1600 
+Islamabad Peshawar 1 2 1700 1900 
+Lahore Peshawar 1 2 2000 2200 

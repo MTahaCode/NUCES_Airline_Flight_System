@@ -1,4 +1,4 @@
-Karachi Lahore 1 2 1100 1300
-Quetta Lahore 1 2 1400 1600
-Peshawar Lahore 1 2 1700 1900
-Islamabad Lahore 1 2 2000 2200
+Karachi Lahore 1 2 1100 1300 
+Quetta Lahore 1 2 1400 1600 
+Peshawar Lahore 1 2 1700 1900 
+Islamabad Lahore 1 2 2000 2200 

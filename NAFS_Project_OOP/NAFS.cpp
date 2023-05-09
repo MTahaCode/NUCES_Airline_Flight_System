@@ -5,6 +5,9 @@
 
 using namespace std;
 
+class City;
+City* Cities;
+
 class Flight
 {
 private:
@@ -304,15 +307,19 @@ public:
 		NoOfPlanes++;
 		BuisnessClass = new Seat * [10];
 		EconomyClass = new Seat * [50];
+		int buisness=0;
 		for (int i = 0; i < 10; i++)
 		{
 			Passenger empty;
-			BuisnessClass[i] = new Seat(empty);
+			BuisnessClass[i] = new Seat(empty,"A"+to_string(buisness));
+			buisness++;
 		}
+		int economy = 0;
 		for (int i = 0; i < 50; i++)
 		{
 			Passenger empty;
-			EconomyClass[i] = new Seat(empty);
+			EconomyClass[i] = new Seat(empty,"B"+ to_string(economy));
+			economy++;
 		}
 		Name = "Plane" + to_string(NoOfPlanes);
 	}
@@ -403,10 +410,57 @@ public:
 			cout << *EconomyClass[i];
 		}
 	}
-
+	Seat* FindSeat(string seatName)
+	{
+		for (int i = 0; i < 10; i++)
+		{
+			if (BuisnessClass[i]->getName() == seatName)
+			{
+				return BuisnessClass[i];
+			}
+		}
+		for (int i = 0; i < 50; i++)
+		{
+			if (EconomyClass[i]->getName() == seatName)
+			{
+				return EconomyClass[i];
+			}
+		}
+		Passenger pass;
+		Seat empty(pass);
+		return &empty;
+	}
 	friend ostream& operator<<(ostream& op, const Plane& plane);
 	friend void InitializaingDummySchedules();
-	//void ShowAvaliableSeats();
+	Flight& GetScheduleAtIndex(int index)
+	{
+		return Schedule[index];
+	}
+	int GetNoOfFlights() const
+	{
+		return NoOfFlights;
+	}
+
+	void ShowAvaliableSeats()
+	{
+		cout << "\nBuisness Seats:\n";
+		for (int i = 0; i < 10; i++)
+		{
+			if (!BuisnessClass[i]->getOccupiedStatus())
+			{
+				cout << BuisnessClass[i]->getName()<<" ";
+			}
+		}
+
+		cout << "\nEconomy Seats:\n";
+		for (int i = 0; i < 50; i++)
+		{
+			if (!EconomyClass[i]->getOccupiedStatus())
+			{
+				cout << EconomyClass[i]->getName() <<" ";
+			}
+		}
+	}
 	//keeps check of which are filled and which are not
 };
 ostream& operator<<(ostream& op, const Plane& plane)
@@ -422,14 +476,16 @@ int Plane::NoOfPlanes = 0;
 
 class Airport
 {
-private:
+protected:
+	string Name;
 	Plane* AllPlanes;
 	int NoOfPlanes = 0;
 	/*FlightSchedule** ScheduleForPlanes;*/
 	//takes flights as aggregation
 public:
-	Airport(int noofplanes=1)
+	Airport(string name = "", int noofplanes = 1)
 	{
+		Name = name;
 		NoOfPlanes = noofplanes;
 		AllPlanes = new Plane[NoOfPlanes];
 		/*ScheduleForPlanes = new FlightSchedule*[NoOfPlanes];
@@ -437,6 +493,10 @@ public:
 		{
 			ScheduleForPlanes[i] = new FlightSchedule(AllPlanes[i]);
 		}*/
+	}
+	string getName()
+	{
+		return Name;
 	}
 	Airport(const Airport& other)
 	{
@@ -458,6 +518,14 @@ public:
 	friend void InitializaingDummySchedules();
 	friend void ChangeSchedule();
 	friend void RestrictPassengers(bool ToRestrict);
+	Plane& GetPlaneAtIndex(int index)
+	{
+		return AllPlanes[index];
+	}
+	int GetNoOfPlanes()
+	{
+		return NoOfPlanes;
+	}
 };
 ostream& operator<<(ostream& op, const Airport& air)
 {
@@ -479,13 +547,54 @@ public:
 	City(string name="")
 	{
 		Name = name;
-		North = new Airport(5);
-		South = new Airport(5);
+		North = new Airport("North", 5);
+		South = new Airport("South",5);
+	}
+	string getName()
+	{
+		return Name;
+	}
+	Airport* getNorth()
+	{
+		return North;
+	}
+	Airport* getSouth()
+	{
+		return South;
 	}
 	friend ostream& operator<<(ostream& op, const City& city);
 	friend void InitializaingDummySchedules();
 	friend void ChangeSchedule();
 	friend void RestrictPassengers(bool ToRestrict);
+	void ShowScheduleGoingTo(int cityArrSelection, int cityDepSelection)
+	{
+		//for north one
+		cout << "In the North Airport:";
+		for (int i = 0; i < 5; i++)
+		{
+			for (int j = 0; j < North->GetPlaneAtIndex(i).GetNoOfFlights(); j++)
+			{
+				if (North->GetPlaneAtIndex(i).GetScheduleAtIndex(j).getArrAirport() == Cities[cityArrSelection].Name &&
+					North->GetPlaneAtIndex(i).GetScheduleAtIndex(j).getDepAirport() == Cities[cityDepSelection].Name)
+				{
+					cout << North->GetPlaneAtIndex(i).GetScheduleAtIndex(j);
+				}
+			}
+		}
+
+		cout << "In the South Airport:";
+		for (int i = 0; i < 5; i++)
+		{
+			for (int j = 0; j < North->GetPlaneAtIndex(i).GetNoOfFlights(); j++)
+			{
+				if (South->GetPlaneAtIndex(i).GetScheduleAtIndex(j).getArrAirport() == Cities[cityArrSelection].Name &&
+					South->GetPlaneAtIndex(i).GetScheduleAtIndex(j).getDepAirport() == Cities[cityDepSelection].Name)
+				{
+					cout << South->GetPlaneAtIndex(i).GetScheduleAtIndex(j);
+				}
+			}
+		}
+	}
 	//composition of two airports namely north and south
 };
 ostream& operator<<(ostream& op, const City& city)
@@ -502,17 +611,19 @@ private:
 	Passenger* RegisteredPassenger;
 	City* DepartureCity;
 	City* ArrivalCity;
+	Airport* DepartureAirport;
 	Seat* seatsSelected;
 	bool isFlightDone;
 	int TicketPrice;
 
 public:
-	Booking(Passenger& p, City& dep, City& arr, bool done = 0, int price = 0) : isFlightDone(done), TicketPrice(price)
+	Booking(Passenger* p, City* dep, City* arr, Airport* depAirport, Seat* seat, bool done = 0, int price = 0) : isFlightDone(done), TicketPrice(price)
 	{
-		RegisteredPassenger = &p;
-		DepartureCity = &dep;
-		ArrivalCity = &arr;
-		seatsSelected = new Seat(p);
+		RegisteredPassenger = p;
+		DepartureCity = dep;
+		ArrivalCity = arr;
+		seatsSelected = seat;
+		DepartureAirport = depAirport;
 	}
 
 	// getters
@@ -567,14 +678,7 @@ public:
 		TicketPrice = price;
 	}
 
-	//ask for which city inital
-	//which city going to 
-	//which airport in the other ciry
-	//show flight schedule of the city
-	//ask which time 
-	//when selected show seats and ask for seats
-	//show cost
-
+	friend ostream& operator<<(ostream& op, const Booking& booking);
 
 	//for country have a string array in global of all countries
 	//ask if they want to go to another country or another city
@@ -585,10 +689,19 @@ public:
 	//takes a flight from a list of flights for the day
 	//takes seats as well
 };
-
-/*string CNIC;
-	string Name;
-	string Password;*/
+ostream& operator<<(ostream& op, const Booking& booking)
+{
+	op << "booking cout";
+	op << "Passenger: " << booking.RegisteredPassenger->getName() << endl;
+	op << "Departure City: " << booking.DepartureCity->getName() << endl;
+	op << "Arrival City: " << booking.ArrivalCity->getName() << endl;
+	op << "Departure Airport: " << booking.DepartureAirport->getName() << endl;
+	op << "Seats Selected: " << booking.seatsSelected->getName() << endl;
+	op << "Is The Flight Done: " << booking.isFlightDone << endl;
+	op << "Ticket Price: " << booking.TicketPrice << endl;
+	op << "booking cout";
+	return op;
+}
 
 int NoOfAdmin = 3;
 Admin* AllAdmin = new Admin[NoOfAdmin];
@@ -596,11 +709,10 @@ Admin* AllAdmin = new Admin[NoOfAdmin];
 int NoOfPassengers = 1;
 Passenger* AllPassengers = new Passenger[NoOfPassengers];
 
-Booking* AllBookings;
+int TotalBookings = 0;
+Booking** AllBookings = NULL;
 
 //Plane** Planes = new Plane * [5];
-
-City* Cities = new City[5]{City("Islamabad"), City("Lahore"), City("Quetta"), City("Peshawar"), City("Karachi") };
 
 void GetAdminInfo();
 void PrintAdmin();
@@ -1258,6 +1370,7 @@ void RestrictPassengers(bool ToRestrict)
 			Cities[citySelection].South->AllPlanes[planeSelection].UnRestrictSeats();
 		}
 	}
+
 	if (airportSelection == 1)
 	{
 		Cities[citySelection].North->AllPlanes[planeSelection].ShowSeats();
@@ -1324,17 +1437,358 @@ void AdminFunction()
 	// restrict no of passengers in a plane
 	//update airline inquiry details
 }
-//a func to increase the booking pointer
+void AddBooking(Booking& NewBooking)
+{
+	Booking** temp = new Booking*[TotalBookings];
+	for (int i = 0; i < TotalBookings; i++)
+	{
+		temp[i] = AllBookings[i];
+	}
+	delete[] AllBookings;
+	TotalBookings++;
+	AllBookings = new Booking*[TotalBookings];
+	for (int i = 0; i < TotalBookings - 1; i++)
+	{
+		AllBookings[i] = temp[i];
+	}
+	AllBookings[TotalBookings - 1] = &NewBooking;
+	delete[] temp;
+}
+void MakeBooking(Passenger& passenger)
+{
+	int cityArrSelection = -1;
+	int cityDepSelection = -1;
+	int DepTime = -1;
+	bool NorthOrSouth = 0;
+	Seat* Found = NULL;
+
+
+	//asking for city initial
+	char Selection = 0;
+	do
+	{
+		Selection = 0;
+		cout << "Which City are you departing from\n";
+		cout << "1) Islamabad\n";
+		cout << "2) Lahore\n";
+		cout << "3) Quetta\n";
+		cout << "4) Peshawar\n";
+		cout << "5) Karachi\n";
+		cin >> Selection;
+		cout << Selection;
+		if (Selection < '1' || Selection > '5')
+		{
+			cout << "Invalid\n";
+		}
+		else
+		{
+			cityDepSelection = Selection - '0' - 1;
+		}
+	} while (Selection < '1' || Selection > '5');
+
+	//asking for city after
+	do
+	{
+		Selection = 0;
+		cout << "Which City are you going to:\n";
+		cout << "1) Islamabad\n";
+		cout << "2) Lahore\n";
+		cout << "3) Quetta\n";
+		cout << "4) Peshawar\n";
+		cout << "5) Karachi\n";
+		cin >> Selection;
+		cout << Selection;
+		if (Selection < '1' || Selection > '5')
+		{
+			cout << "Invalid\n";
+		}
+		else
+		{
+			cityArrSelection = Selection - '0' - 1;
+		}
+	} while (Selection < '1' || Selection > '5');
+
+	//asking for the airport
+	do
+	{
+		Selection = 0;
+		cout << "Which Airport are you at:\n";
+		cout << "1) North\n";
+		cout << "2) South\n";
+		cin >> Selection;
+		cout << Selection;
+		if (Selection < '1' || Selection > '2')
+		{
+			cout << "Invalid\n";
+		}
+		else
+		{
+			NorthOrSouth = Selection - '0' - 1;
+		}
+	} while (Selection < '1' || Selection > '2');
+	
+	//showing schedule
+	cout << "Schedule of the city:\n";
+	Cities[cityDepSelection].ShowScheduleGoingTo(cityArrSelection,cityDepSelection);
+
+	//asking for time
+	int time = 0;
+	do
+	{
+		Selection = 0;
+		cout << "Enter Time According to Schedule: ";
+		cin >> time;
+		if (time < 0)
+		{
+			cout << "Invalid\n";
+		}
+		else
+		{
+			DepTime = time;
+		}
+	} while (time < 0);
+
+	//now showing all avaliable seats
+	for (int i = 0; i < 5; i++)
+	{
+		bool Break1 = 0;
+
+		if (!NorthOrSouth)
+		{
+			for (int j = 0; j < Cities[i].getNorth()->GetNoOfPlanes(); i++)
+			{
+				bool Break2 = 0;
+				cout << "For the North Airport:\n";
+				for (int k = 0; k < Cities[i].getNorth()->GetPlaneAtIndex(j).GetNoOfFlights(); k++)
+				{
+					if (time == Cities[i].getNorth()->GetPlaneAtIndex(j).GetScheduleAtIndex(k).getDepartureTime())
+					{
+						Cities[i].getNorth()->GetPlaneAtIndex(j).ShowAvaliableSeats();
+						Break2 = 1;
+						break;
+					}
+				}
+				if (Break2)
+				{
+					Break1 = 1;
+					break;
+				}
+			}
+		}
+		else
+		{
+			for (int j = 0; j < Cities[i].getSouth()->GetNoOfPlanes(); i++)
+			{
+				bool Break2 = 0;
+				cout << "For the South Airport:\n";
+				for (int k = 0; k < Cities[i].getSouth()->GetPlaneAtIndex(j).GetNoOfFlights(); k++)
+				{
+					if (time == Cities[i].getSouth()->GetPlaneAtIndex(j).GetScheduleAtIndex(k).getDepartureTime())
+					{
+						Cities[i].getSouth()->GetPlaneAtIndex(j).ShowAvaliableSeats();
+						Break2 = 1;
+						break;
+					}
+				}
+				if (Break2)
+				{
+					Break1 = 1;
+					break;
+				}
+			}
+		}
+		if (Break1)
+		{
+			break;
+		}
+	}
+
+	//running for wrong or occupied seat
+	while (1)
+	{
+		string SeatName;
+		cout << "Enter Seat Name: ";
+		cin >> SeatName;
+
+		//finding the seat name
+		for (int i = 0; i < 5; i++)
+		{
+			bool Break1 = 0;
+			if (!NorthOrSouth)
+			{
+				for (int j = 0; j < Cities[i].getNorth()->GetNoOfPlanes(); i++)
+				{
+					bool Break2 = 0;
+					cout << "For the North Airport:\n";
+					for (int k = 0; k < Cities[i].getNorth()->GetPlaneAtIndex(j).GetNoOfFlights(); k++)
+					{
+						if (time == Cities[i].getNorth()->GetPlaneAtIndex(j).GetScheduleAtIndex(k).getDepartureTime())
+						{
+							Found = Cities[i].getNorth()->GetPlaneAtIndex(j).FindSeat(SeatName);
+							Break2 = 1;
+							break;
+						}
+					}
+					if (Break2)
+					{
+						Break1 = 1;
+						break;
+					}
+				}
+			}
+			else
+			{
+				for (int j = 0; j < Cities[i].getSouth()->GetNoOfPlanes(); i++)
+				{
+					bool Break2 = 0;
+					cout << "For the South Airport:\n";
+					for (int k = 0; k < Cities[i].getSouth()->GetPlaneAtIndex(j).GetNoOfFlights(); k++)
+					{
+						if (time == Cities[i].getSouth()->GetPlaneAtIndex(j).GetScheduleAtIndex(k).getDepartureTime())
+						{
+							Cities[i].getSouth()->GetPlaneAtIndex(j).ShowAvaliableSeats();
+							Break2 = 1;
+							break;
+						}
+					}
+					if (Break2)
+					{
+						Break1 = 1;
+						break;
+					}
+				}
+			}
+			if (Break1)
+			{
+				break;
+			}
+		}
+
+		//doing other things
+		if (Found->getName() == "")
+		{
+			cout << "Seat Not Found\n";
+			continue;
+		}
+		if (Found->getOccupiedStatus() == 1)
+		{
+			cout << "This Seat is Occupied\n";
+			continue;
+		}
+		Found->setOccupied(1);
+		break;
+	}
+		
+	if (!NorthOrSouth)
+	{
+		Booking* NewBooking = new Booking(&passenger, &Cities[cityArrSelection], &Cities[cityDepSelection], Cities[cityDepSelection].getNorth(), Found);
+		AddBooking(*NewBooking);
+	}
+	else
+	{
+		Booking* NewBooking = new Booking(&passenger, &Cities[cityArrSelection], &Cities[cityDepSelection], Cities[cityDepSelection].getSouth(), Found);
+		AddBooking(*NewBooking);
+	}
+
+
+	//--ask for which city inital
+	//--which city going to 
+	//which airport in the other ciry
+	//--show flight schedule of the city
+	//--ask which time 
+	//when selected show seats and ask for seats
+	//show cost
+
+}
+void PassengerFunction(Passenger& passenger)
+{
+	//ask for booking
+	//		ask 
+	// 
+	// 
+	// 
+	//ask for passport state change
+	//ask for visa state change
+	//ask for if they want route details
+	//ask for if they want 
+	bool Exit = 0;
+	while (!Exit)
+	{
+		cout << "To make a booking Press 1\n";
+		cout << "To Change Passport avaliability Press 2\n";
+		cout << "To Change VISA avaliability Press 3\n";
+		cout << "To ask for route details Press 4\n";
+		cout << "To Update Airline Inquiry Press 4\n";
+		cout << "To go Back Press 5\n";
+		char Selection = 0;
+		cin >> Selection;
+		switch (Selection)
+		{
+		case '1':
+		{
+			ChangeSchedule();
+			break;
+		}
+		case '2':
+		{
+			RestrictPassengers(1);
+			break;
+		}
+		case '3':
+		{
+			RestrictPassengers(0);
+			break;
+		}
+		case '4':
+		{
+			cout << "UpdateAirlineInquiry()";
+			break;
+		}
+		case '5':
+		{
+			return;
+			break;
+		}
+		default:
+		{
+			cout << "Invalid Selection. Wait a few seconds.\n";
+			Sleep(1000);
+			system("cls");
+			break;
+		}
+		}
+	}
+
+	// 
+	// 
+	// 
+	// 
+	//change routes for the planes
+	// restrict no of passengers in a plane
+	//update airline inquiry details
+}
+void ShowBookings()
+{
+	for (int i = 0; i < TotalBookings; i++)
+	{
+		cout << *AllBookings[i];
+	}
+}
+//--a func to increase the booking pointer
 
 
 int main()
 {
+	Cities = new City[5]{ City("Islamabad"), City("Lahore"), City("Quetta"), City("Peshawar"), City("Karachi") };
 	InitializaingDummySchedules();
 	GetAdminInfo();
 	UpdatePassengerArray();
 	PrintPassengers();
 	PrintAdmin();
-	AdminFunction();
+	MakeBooking(AllPassengers[0]);
+	ShowBookings();
+	MakeBooking(AllPassengers[1]);
+	ShowBookings();
 	/*bool Exit = 0;
 	while (!Exit)
 	{
@@ -1374,6 +1828,18 @@ int main()
 			break;
 		}
 	}*/
+	
+	//deleting bookings
+	for (int i = 0; i < TotalBookings; i++)
+	{
+		delete[] AllBookings[i];
+	}
+	delete[] AllBookings;
+
+	//deleting passengers and admin
+	delete[] AllAdmin;
+	delete[] AllPassengers;
+	
 	return 0;
 }
 
@@ -1783,6 +2249,7 @@ void Login()
 	else if (PassengerIndex != -1)
 	{
 		cout << "Passenger at index " << PassengerIndex;
+		PassengerFunction(AllPassengers[PassengerIndex]);
 	}
 
 	//have to login to special thing

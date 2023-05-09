@@ -1,4 +1,4 @@
-Karachi Quetta 1 2 1100 1300
-Lahore Quetta 1 2 1400 1600
-Peshawar Quetta 1 2 1700 1900
-Islamabad Quetta 1 2 2000 2200
+Karachi Quetta 1 2 1100 1300 
+Lahore Quetta 1 2 1400 1600 
+Peshawar Quetta 1 2 1700 1900 
+Islamabad Quetta 1 2 2000 2200 
