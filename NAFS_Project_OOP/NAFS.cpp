@@ -17,9 +17,20 @@ private:
 	int ArrivalTime;
 	string DepartureAirport;
 	string ArrivalAirport;
+	bool* EconomyOccupied;
+	bool* BuisnessOccupied;
+	bool* EconomyRestricted;
+	bool* BuisnessRestricted;
 public:
 	Flight(string arr="", string dep="", bool local = 0, int hrs = 0, int depTime = 0, int arrTime = 0)
-		: isLocal(local), HrsOfFlight(hrs), DepartureTime(depTime), ArrivalTime(arrTime), DepartureAirport(dep), ArrivalAirport(arr) {}
+		: isLocal(local), HrsOfFlight(hrs), DepartureTime(depTime), ArrivalTime(arrTime), DepartureAirport(dep), ArrivalAirport(arr) 
+	{
+		EconomyOccupied = new bool[50];
+		BuisnessOccupied = new bool[10];
+
+		EconomyRestricted = new bool[50];
+		BuisnessRestricted = new bool[10];
+	}
 
 	// Getters
 	bool getIsLocal() const 
@@ -46,6 +57,23 @@ public:
 	{
 		return ArrivalAirport;
 	}
+	bool getOccupiedEconomyAtIndex(int index) const 
+	{
+		return EconomyOccupied[index];
+	}
+	bool getOccupiedBuisnessAtIndex(int index) const 
+	{
+		return EconomyOccupied[index];
+	}
+	bool getRestrictedEconomyAtIndex(int index) const 
+	{
+		return EconomyOccupied[index];
+	}
+	bool getRestrictedEconomyAtIndex(int index) const 
+	{
+		return EconomyOccupied[index];
+	}
+
 
 	// Setters
 	void setIsLocal(bool local) 
@@ -72,6 +100,23 @@ public:
 	{
 		ArrivalAirport = arr;
 	}
+	void setOccupiedEconomyAtIndex(int index, bool condition)
+	{
+		EconomyOccupied[index] = condition;
+	}
+	void setOccupiedBuisnessAtIndex(int index, bool condition)
+	{
+		EconomyOccupied[index] = condition;
+	}
+	void setRestrictedBuisnessAtIndex(int index, bool condition)
+	{
+		BuisnessOccupied[index] = condition;
+	}
+	void setRestrictedEconomyAtIndex(int index, bool condition)
+	{
+		EconomyOccupied[index] = condition;
+	}
+
 	friend ostream& operator<<(ostream& op, const Flight& flight);
 
 	bool operator==(const Flight& flight)
@@ -173,41 +218,24 @@ class Seat
 protected:
 	Passenger& passenger;
 	string Name;
-	bool isOccupied;
-	bool Restrict;
 public:
 	Seat(Passenger& pass, string name = "", bool occupied = 0, bool restrict = 0)
-		:Name(name), isOccupied(occupied), passenger(pass), Restrict(restrict){}
+		:Name(name), passenger(pass) {}
 
 	// getters
-	bool getRestrict() const
-	{
-		return Restrict;
-	}
 	string getName() const
 	{
 		return Name;
-	}
-	bool getOccupiedStatus() const
-	{
-		return isOccupied;
 	}
 	Passenger getPassenger() const
 	{
 		return passenger;
 	}
+
 	//setters
-	void setRestrict(bool res)
-	{
-		Restrict = res;
-	}
 	void setName(string name)
 	{
 		Name = name;
-	}
-	void setOccupied(bool status)
-	{
-		isOccupied = status;
 	}
 	void setPassenger(Passenger& p)
 	{
@@ -219,8 +247,6 @@ public:
 ostream& operator<<(ostream& op, const Seat& seat)
 {
 	op << "Name: " << seat.Name;
-	op << "IsOccupied: " << seat.isOccupied;
-	op << "Restrict: " << seat.Restrict;
 	op << endl;
 	return op;
 }
@@ -318,7 +344,14 @@ public:
 		for (int i = 0; i < 50; i++)
 		{
 			Passenger empty;
-			EconomyClass[i] = new Seat(empty,"B"+ to_string(economy));
+			if (i < 10)
+			{
+				EconomyClass[i] = new Seat(empty, "B" + '0' + to_string(economy));
+			}
+			else
+			{
+				EconomyClass[i] = new Seat(empty, "B" + to_string(economy));
+			}
 			economy++;
 		}
 		Name = "Plane" + to_string(NoOfPlanes);
@@ -371,30 +404,42 @@ public:
 	}
 	void RestrictSeats()
 	{
-		for (int i = 0; i < 10; i++)
+		for (int j = 0; j < NoOfFlights; j++)
 		{
-			if (i % 2 == 0)
+			for (int i = 0; i < 10; i++)
 			{
-				BuisnessClass[i]->setRestrict(1);
+				if (i % 2 == 0)
+				{
+					Schedule[j].setRestrictedBuisnessAtIndex(i, 1);
+				}
 			}
-		}
-		for (int i = 0; i < 50; i++)
-		{
-			if (i % 2 == 0)
+			for (int i = 0; i < 50; i++)
 			{
-				EconomyClass[i]->setRestrict(1);
+				if (i % 2 == 0)
+				{
+					Schedule[j].setRestrictedEconomyAtIndex(i, 1);
+				}
 			}
 		}
 	}
 	void UnRestrictSeats()
 	{
-		for (int i = 0; i < 10; i++)
+		for (int j = 0; j < NoOfFlights; j++)
 		{
-			BuisnessClass[i]->setRestrict(0);
-		}
-		for (int i = 0; i < 50; i++)
-		{
-			EconomyClass[i]->setRestrict(0);
+			for (int i = 0; i < 10; i++)
+			{
+				if (i % 2 == 0)
+				{
+					Schedule[j].setRestrictedBuisnessAtIndex(i, 0);
+				}
+			}
+			for (int i = 0; i < 50; i++)
+			{
+				if (i % 2 == 0)
+				{
+					Schedule[j].setRestrictedEconomyAtIndex(i, 0);
+				}
+			}
 		}
 	}
 	void ShowSeats()
@@ -441,12 +486,12 @@ public:
 		return NoOfFlights;
 	}
 
-	void ShowAvaliableSeats()
+	void ShowAvaliableSeats(int flightindex)
 	{
 		cout << "\nBuisness Seats:\n";
 		for (int i = 0; i < 10; i++)
 		{
-			if (!BuisnessClass[i]->getOccupiedStatus())
+			if (!Schedule->getOccupiedBuisnessAtIndex(i))
 			{
 				cout << BuisnessClass[i]->getName()<<" ";
 			}
@@ -455,7 +500,7 @@ public:
 		cout << "\nEconomy Seats:\n";
 		for (int i = 0; i < 50; i++)
 		{
-			if (!EconomyClass[i]->getOccupiedStatus())
+			if (!Schedule->getOccupiedEconomyAtIndex(i))
 			{
 				cout << EconomyClass[i]->getName() <<" ";
 			}
@@ -613,17 +658,19 @@ private:
 	City* ArrivalCity;
 	Airport* DepartureAirport;
 	Seat* seatsSelected;
+	Flight* flightSelected;
 	bool isFlightDone;
 	int TicketPrice;
 
 public:
-	Booking(Passenger* p, City* dep, City* arr, Airport* depAirport, Seat* seat, bool done = 0, int price = 0) : isFlightDone(done), TicketPrice(price)
+	Booking(Passenger* p, City* dep, City* arr, Airport* depAirport, Seat* seat, Flight* flight, bool done = 0, int price = 0) : isFlightDone(done), TicketPrice(price)
 	{
 		RegisteredPassenger = p;
 		DepartureCity = dep;
 		ArrivalCity = arr;
 		seatsSelected = seat;
 		DepartureAirport = depAirport;
+		flightSelected = flight;
 	}
 
 	// getters
@@ -691,7 +738,6 @@ public:
 };
 ostream& operator<<(ostream& op, const Booking& booking)
 {
-	op << "booking cout";
 	op << "Passenger: " << booking.RegisteredPassenger->getName() << endl;
 	op << "Departure City: " << booking.DepartureCity->getName() << endl;
 	op << "Arrival City: " << booking.ArrivalCity->getName() << endl;
@@ -699,7 +745,6 @@ ostream& operator<<(ostream& op, const Booking& booking)
 	op << "Seats Selected: " << booking.seatsSelected->getName() << endl;
 	op << "Is The Flight Done: " << booking.isFlightDone << endl;
 	op << "Ticket Price: " << booking.TicketPrice << endl;
-	op << "booking cout";
 	return op;
 }
 
@@ -712,29 +757,9 @@ Passenger* AllPassengers = new Passenger[NoOfPassengers];
 int TotalBookings = 0;
 Booking** AllBookings = NULL;
 
-//Plane** Planes = new Plane * [5];
-
+//initializes all the info
 void GetAdminInfo();
-void PrintAdmin();
-void PrintPassengers();
-void VerifyFinancialDetail();
-bool AdminExists(string login);
-bool PassengerExists(string login);
-bool UserExists(string login);
-bool isValidPassword(string password);
-void AddToFile(Passenger ToBeRegistered);
 void UpdatePassengerArray();
-void Register();
-int FindInAdmin(string CNIC);
-int FindInPassengers(string CNIC);
-void Login();
-void DisplayPlanesInCity()
-{
-	for (int i = 0; i < 5; i++)
-	{
-		cout << Cities[i];
-	}
-}
 void InitializaingDummySchedules()
 {
 	ifstream get;
@@ -743,64 +768,64 @@ void InitializaingDummySchedules()
 
 	//for Islamabad
 	{
-	get.open("IslamabadSchedule.txt");
-	while (getline(get, str))
-	{
-		string SeperateBySpace;
-		int AttributeFlag = 0;
-		Flight FromFile;
-		for (int i = 0; i < str.length(); i++)
+		get.open("IslamabadSchedule.txt");
+		while (getline(get, str))
 		{
-			if (str[i] == ' ')
+			string SeperateBySpace;
+			int AttributeFlag = 0;
+			Flight FromFile;
+			for (int i = 0; i < str.length(); i++)
 			{
-				if (AttributeFlag == 0)
+				if (str[i] == ' ')
 				{
-					AttributeFlag++;
-					FromFile.setArrAirport(SeperateBySpace);
-					SeperateBySpace = "";
+					if (AttributeFlag == 0)
+					{
+						AttributeFlag++;
+						FromFile.setArrAirport(SeperateBySpace);
+						SeperateBySpace = "";
+					}
+					else if (AttributeFlag == 1)
+					{
+						AttributeFlag++;
+						FromFile.setDepAirport(SeperateBySpace);
+						SeperateBySpace = "";
+					}
+					else if (AttributeFlag == 2)
+					{
+						AttributeFlag++;
+						FromFile.setIsLocal(stoi(SeperateBySpace));
+						SeperateBySpace = "";
+					}
+					else if (AttributeFlag == 3)
+					{
+						AttributeFlag++;
+						FromFile.setHrsOfFlight(stoi(SeperateBySpace));
+						SeperateBySpace = "";
+					}
+					else if (AttributeFlag == 4)
+					{
+						AttributeFlag++;
+						FromFile.setDepartureTime(stoi(SeperateBySpace));
+						SeperateBySpace = "";
+					}
+					else if (AttributeFlag == 5)
+					{
+						AttributeFlag++;
+						FromFile.setArrivalTime(stoi(SeperateBySpace));
+						SeperateBySpace = "";
+					}
+					continue;
 				}
-				else if (AttributeFlag == 1)
-				{
-					AttributeFlag++;
-					FromFile.setDepAirport(SeperateBySpace);
-					SeperateBySpace = "";
-				}
-				else if (AttributeFlag == 2)
-				{
-					AttributeFlag++;
-					FromFile.setIsLocal(stoi(SeperateBySpace));
-					SeperateBySpace = "";
-				}
-				else if (AttributeFlag == 3)
-				{
-					AttributeFlag++;
-					FromFile.setHrsOfFlight(stoi(SeperateBySpace));
-					SeperateBySpace = "";
-				}
-				else if (AttributeFlag == 4)
-				{
-					AttributeFlag++;
-					FromFile.setDepartureTime(stoi(SeperateBySpace));
-					SeperateBySpace = "";
-				}
-				else if (AttributeFlag == 5)
-				{
-					AttributeFlag++;
-					FromFile.setArrivalTime(stoi(SeperateBySpace));
-					SeperateBySpace = "";
-				}
-				continue;
+				SeperateBySpace += str[i];
 			}
-			SeperateBySpace += str[i];
+			for (int i = 0; i < 5; i++)
+			{
+				Cities[0].North->AllPlanes[i].AddFlight(FromFile);
+				Cities[0].South->AllPlanes[i].AddFlight(FromFile);
+			}
+			FlightFlag++;
 		}
-		for (int i = 0; i < 5; i++)
-		{
-			Cities[0].North->AllPlanes[i].AddFlight(FromFile);
-			Cities[0].South->AllPlanes[i].AddFlight(FromFile);
-		}
-		FlightFlag++;
-	}
-	get.close();
+		get.close();
 	}
 
 	//for Lahore
@@ -1055,6 +1080,42 @@ void InitializaingDummySchedules()
 		get.close();
 	}
 }
+
+//a function that is too complex to implement
+void VerifyFinancialDetail();
+
+//basic functions necessary for login
+bool AdminExists(string login);
+bool PassengerExists(string login);
+bool UserExists(string login);
+bool isValidPassword(string password);
+int FindInAdmin(string CNIC);
+int FindInPassengers(string CNIC);
+void Login();
+
+//functions for register
+void AddToFile(Passenger ToBeRegistered);
+void Register();
+
+//Fucnctions for testing and displaying
+void DisplayPlanesInCity()
+{
+	for (int i = 0; i < 5; i++)
+	{
+		cout << Cities[i];
+	}
+}
+void ShowBookings()
+{
+	for (int i = 0; i < TotalBookings; i++)
+	{
+		cout << *AllBookings[i];
+	}
+}
+void PrintAdmin();
+void PrintPassengers();
+
+//Admin Fuctions
 void ChangeSchedule()
 {
 	//change schedule to a plane
@@ -1347,7 +1408,6 @@ void RestrictPassengers(bool ToRestrict)
 		}
 	} while (Selection < '1' || Selection > '5');
 
-
 	if (ToRestrict == 1)
 	{
 		if (airportSelection == 1)
@@ -1437,6 +1497,8 @@ void AdminFunction()
 	// restrict no of passengers in a plane
 	//update airline inquiry details
 }
+
+//passenger functions
 void AddBooking(Booking& NewBooking)
 {
 	Booking** temp = new Booking*[TotalBookings];
@@ -1460,8 +1522,10 @@ void MakeBooking(Passenger& passenger)
 	int cityDepSelection = -1;
 	int DepTime = -1;
 	bool NorthOrSouth = 0;
-	Seat* Found = NULL;
-
+	Seat* SeatFound = NULL;
+	Flight* FlightFound = NULL;
+	int FlightIndex = -1;
+	int PlaneIndex = 1;
 
 	//asking for city initial
 	char Selection = 0;
@@ -1563,7 +1627,9 @@ void MakeBooking(Passenger& passenger)
 				{
 					if (time == Cities[i].getNorth()->GetPlaneAtIndex(j).GetScheduleAtIndex(k).getDepartureTime())
 					{
-						Cities[i].getNorth()->GetPlaneAtIndex(j).ShowAvaliableSeats();
+						Cities[i].getNorth()->GetPlaneAtIndex(j).ShowAvaliableSeats(k);
+						FlightIndex = k;
+						PlaneIndex = j;
 						Break2 = 1;
 						break;
 					}
@@ -1585,7 +1651,9 @@ void MakeBooking(Passenger& passenger)
 				{
 					if (time == Cities[i].getSouth()->GetPlaneAtIndex(j).GetScheduleAtIndex(k).getDepartureTime())
 					{
-						Cities[i].getSouth()->GetPlaneAtIndex(j).ShowAvaliableSeats();
+						Cities[i].getSouth()->GetPlaneAtIndex(j).ShowAvaliableSeats(k);
+						FlightIndex = k;
+						PlaneIndex = j;
 						Break2 = 1;
 						break;
 					}
@@ -1624,7 +1692,8 @@ void MakeBooking(Passenger& passenger)
 					{
 						if (time == Cities[i].getNorth()->GetPlaneAtIndex(j).GetScheduleAtIndex(k).getDepartureTime())
 						{
-							Found = Cities[i].getNorth()->GetPlaneAtIndex(j).FindSeat(SeatName);
+							SeatFound = Cities[i].getNorth()->GetPlaneAtIndex(j).FindSeat(SeatName);
+							FlightFound = &Cities[i].getNorth()->GetPlaneAtIndex(j).GetScheduleAtIndex(k);
 							Break2 = 1;
 							break;
 						}
@@ -1646,7 +1715,8 @@ void MakeBooking(Passenger& passenger)
 					{
 						if (time == Cities[i].getSouth()->GetPlaneAtIndex(j).GetScheduleAtIndex(k).getDepartureTime())
 						{
-							Cities[i].getSouth()->GetPlaneAtIndex(j).ShowAvaliableSeats();
+							SeatFound = Cities[i].getSouth()->GetPlaneAtIndex(j).FindSeat(SeatName);
+							FlightFound = &Cities[i].getNorth()->GetPlaneAtIndex(j).GetScheduleAtIndex(k);
 							Break2 = 1;
 							break;
 						}
@@ -1665,28 +1735,37 @@ void MakeBooking(Passenger& passenger)
 		}
 
 		//doing other things
-		if (Found->getName() == "")
+		if (SeatFound->getName() == "")
 		{
 			cout << "Seat Not Found\n";
 			continue;
 		}
-		if (Found->getOccupiedStatus() == 1)
+		if ((SeatFound->getName()[0] == 'A' && FlightFound->getOccupiedBuisnessAtIndex(SeatFound->getName()[1]  - '0'))|| 
+			(SeatFound->getName()[0] == 'B' && FlightFound->getOccupiedBuisnessAtIndex((10*SeatFound->getName()[1] - '0') + SeatFound->getName()[2] - '0')))
 		{
 			cout << "This Seat is Occupied\n";
 			continue;
 		}
-		Found->setOccupied(1);
+
+		if (SeatName[0] = 'A')
+		{
+			FlightFound->setOccupiedBuisnessAtIndex(SeatFound->getName()[1] - '0',1);
+		}
+		else
+		{
+			FlightFound->setOccupiedEconomyAtIndex((10 * SeatFound->getName()[1] - '0') + (SeatFound->getName()[2] - '0'),1);
+		}
 		break;
 	}
 		
 	if (!NorthOrSouth)
 	{
-		Booking* NewBooking = new Booking(&passenger, &Cities[cityArrSelection], &Cities[cityDepSelection], Cities[cityDepSelection].getNorth(), Found);
+		Booking* NewBooking = new Booking(&passenger, &Cities[cityArrSelection], &Cities[cityDepSelection], Cities[cityDepSelection].getNorth(), SeatFound, FlightFound);
 		AddBooking(*NewBooking);
 	}
 	else
 	{
-		Booking* NewBooking = new Booking(&passenger, &Cities[cityArrSelection], &Cities[cityDepSelection], Cities[cityDepSelection].getSouth(), Found);
+		Booking* NewBooking = new Booking(&passenger, &Cities[cityArrSelection], &Cities[cityDepSelection], Cities[cityDepSelection].getSouth(), SeatFound, FlightFound);
 		AddBooking(*NewBooking);
 	}
 
@@ -1726,7 +1805,7 @@ void PassengerFunction(Passenger& passenger)
 		{
 		case '1':
 		{
-			ChangeSchedule();
+			MakeBooking(passenger);
 			break;
 		}
 		case '2':
@@ -1767,15 +1846,6 @@ void PassengerFunction(Passenger& passenger)
 	// restrict no of passengers in a plane
 	//update airline inquiry details
 }
-void ShowBookings()
-{
-	for (int i = 0; i < TotalBookings; i++)
-	{
-		cout << *AllBookings[i];
-	}
-}
-//--a func to increase the booking pointer
-
 
 int main()
 {
@@ -1783,13 +1853,13 @@ int main()
 	InitializaingDummySchedules();
 	GetAdminInfo();
 	UpdatePassengerArray();
+
+	cout << "\nList of All the Passengers:\n";
 	PrintPassengers();
+
+	cout << "\nList of All the Admins:\n";
 	PrintAdmin();
-	MakeBooking(AllPassengers[0]);
-	ShowBookings();
-	MakeBooking(AllPassengers[1]);
-	ShowBookings();
-	/*bool Exit = 0;
+	bool Exit = 0;
 	while (!Exit)
 	{
 		char MainSelection = 0;
@@ -1827,7 +1897,7 @@ int main()
 			system("cls");
 			break;
 		}
-	}*/
+	}
 	
 	//deleting bookings
 	for (int i = 0; i < TotalBookings; i++)
@@ -2026,7 +2096,6 @@ void UpdatePassengerArray()
 	while (getline(GetNumPass, APassenger))
 	{
 		NoOfPassengers++;
-		cout << NoOfPassengers;
 	}
 	GetNumPass.close();
 
@@ -2243,12 +2312,14 @@ void Login()
 
 	if (AdminIndex != -1)
 	{
-		cout << "Admin at index " << AdminIndex;
+		system("cls");
+		cout << "Welcome to the Admin Function, " << AllAdmin[AdminIndex].getName() << endl;
 		AdminFunction();
 	}
 	else if (PassengerIndex != -1)
 	{
-		cout << "Passenger at index " << PassengerIndex;
+		system("cls");
+		cout << "Welcome to the Passenger Function, " << AllPassengers[PassengerIndex].getName() << endl;
 		PassengerFunction(AllPassengers[PassengerIndex]);
 	}
 
